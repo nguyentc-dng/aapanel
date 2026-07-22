@@ -1,0 +1,111 @@
+name: Build patched aaPanel packages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  
+jobs:
+  build:
+    name: Build patched aaPanel packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1440
+    
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sed wget unzip
+          python3 -m pip install pycryptodome
+
+      - name: Checkout build source
+        uses: actions/checkout@v4
+
+      - name: Set environment variable
+        run: |
+          AA_VERSION=$(curl -Ss --connect-timeout 20 -m 60 https://www.aapanel.com/api/panel/getLatestOfficialVersion 2>/dev/null)
+          echo "AA_VERSION=$AA_VERSION" >> $GITHUB_ENV
+
+      - name: Download aaPanel packages
+        run: |
+          mkdir ./org_packages/ && rm -rf mkdir ./org_packages/*
+          wget --no-check-certificate -O ./org_packages/panel_install_${{ env.AA_VERSION }}.zip https://node.aapanel.com/install/src/panel_pro_en.zip
+          wget --no-check-certificate -O ./org_packages/panel_update_${{ env.AA_VERSION }}.zip https://node.aapanel.com/install/update/LinuxPanel_EN-${{ env.AA_VERSION }}.zip
+
+      - name: Create patched directory
+        run: |
+          mkdir ./patched_packages/ && ./patched_packages/*
+
+      - name: Patch install packages
+        run: |
+          rm -rf ./panel
+          unzip -o ./org_packages/panel_install_${{ env.AA_VERSION }}.zip -d .
+          cp ./patched/PluginLoader.py ./panel/class/PluginLoader.py
+          sed -i "s|'offical_base':[[:space:]]*\[[^]]*\]|'offical_base':      ['${{ secrets.AA_OFFICAL_BASE }}']|g" ./panel/class/public/common.py
+          sed -i "s|'api_base':[[:space:]]*\[[^]]*\]|'api_base':          ['${{ secrets.AA_API_BASE }}']|g" ./panel/class/public/common.py
+          sed -i "s|'plugin_base':[[:space:]]*\[[^]]*\]|'plugin_base':       ['${{ secrets.AA_PLUGIN_BASE }}']|g" ./panel/class/public/common.py
+          sed -i "s/PluginLoader\.so/PluginLoader_real.so/g" ./panel/BT-Panel
+          rm -rf ./patched/comMod_dec.py ./patched/comMod.py
+          python3 ./aes_decrypt.py input=./panel/mod/project/agent/comMod.py output=./patched/comMod_dec.py key=${{ secrets.AA_MODULE_AES_KEY }} iv=${{ secrets.AA_MODULE_AES_IV }}
+          sed -i 's|https://www\.aapanel\.com/aap_agent|https://aa.maxcdn.top/aap_agent|g' ./patched/comMod_dec.py
+          sed -Ei 's|"api_base_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v1"|"api_base_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
+          sed -Ei 's|"api_simple_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v2"|"api_simple_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
+          sed -Ei 's|"api_sleep_model_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v3"|"api_sleep_model_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
+          sed -Ei 's|# "api_embedding_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/embedding/v1"|"api_embedding_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
+          python3 ./aes_encrypt.py input=./patched/comMod_dec.py output=./patched/comMod.py key=${{ secrets.AA_MODULE_AES_KEY }} iv=${{ secrets.AA_MODULE_AES_IV }}
+          rm -rf ./panel/mod/project/agent/comMod.py
+          cp ./patched/comMod.py ./panel/mod/project/agent/comMod.py
+          zip -r "./patched_packages/panel_install_${{ env.AA_VERSION }}.zip" ./panel
+
+      - name: Patch upgrade packages
+        run: |
+          rm -rf ./panel
+          unzip -o ./org_packages/panel_update_${{ env.AA_VERSION }}.zip -d .
+          cp ./patched/PluginLoader.py ./panel/class/PluginLoader.py
+          sed -i "s|'offical_base':[[:space:]]*\[[^]]*\]|'offical_base':      ['${{ secrets.AA_OFFICAL_BASE }}']|g" ./panel/class/public/common.py
+          sed -i "s|'api_base':[[:space:]]*\[[^]]*\]|'api_base':          ['${{ secrets.AA_API_BASE }}']|g" ./panel/class/public/common.py
+          sed -i "s|'plugin_base':[[:space:]]*\[[^]]*\]|'plugin_base':       ['${{ secrets.AA_PLUGIN_BASE }}']|g" ./panel/class/public/common.py
+          sed -i "s/PluginLoader\.so/PluginLoader_real.so/g" ./panel/BT-Panel
+          rm -rf ./patched/comMod_dec.py ./patched/comMod.py
+          python3 ./aes_decrypt.py input=./panel/mod/project/agent/comMod.py output=./patched/comMod_dec.py key=${{ secrets.AA_MODULE_AES_KEY }} iv=${{ secrets.AA_MODULE_AES_IV }}
+          sed -i 's|https://www\.aapanel\.com/aap_agent|https://aa.maxcdn.top/aap_agent|g' ./patched/comMod_dec.py
+          sed -Ei 's|"api_base_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v1"|"api_base_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
+          sed -Ei 's|"api_simple_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v2"|"api_simple_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
+          sed -Ei 's|"api_sleep_model_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v3"|"api_sleep_model_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
+          sed -Ei 's|# "api_embedding_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/embedding/v1"|"api_embedding_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
+          python3 ./aes_encrypt.py input=./patched/comMod_dec.py output=./patched/comMod.py key=${{ secrets.AA_MODULE_AES_KEY }} iv=${{ secrets.AA_MODULE_AES_IV }}
+          rm -rf ./panel/mod/project/agent/comMod.py
+          cp ./patched/comMod.py ./panel/mod/project/agent/comMod.py
+          zip -r "./patched_packages/panel_update_${{ env.AA_VERSION }}.zip" ./panel
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: "aaPanel Pro ${{ env.AA_VERSION }}"
+          release_name: "aaPanel Pro ${{ env.AA_VERSION }}"
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Install Package
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "./patched_packages/panel_install_${{ env.AA_VERSION }}.zip"
+          asset_name: "panel_install_${{ env.AA_VERSION }}.zip"
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Upgrade Package
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "./patched_packages/panel_update_${{ env.AA_VERSION }}.zip"
+          asset_name: "panel_update_${{ env.AA_VERSION }}.zip"
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -5,7 +5,7 @@ from importlib.util import module_from_spec, spec_from_loader
 
 loader = ExtensionFileLoader(
     "PluginLoader",
-    "/www/server/panel/class/PluginLoader.x86_64.Python3.12.so"
+    "/www/server/panel/class/PluginLoader_real.so"
 )
 spec = spec_from_loader("PluginLoader", loader)
 
@@ -15,8 +15,6 @@ real = module_from_spec(spec)
 loader.exec_module(real)
 
 # Patch get_plugin_list function
-_org_get_plugin_list = real.get_plugin_list
-
 def _patch_plugin_list(data):
     if not isinstance(data, dict):
         return data
@@ -32,8 +30,10 @@ def _patch_plugin_list(data):
         if et is None or (isinstance(et, (int, float)) and et < 0):
             p['endtime'] = 0
         if p.get('authorization_sn') is None:
-            p['authorization_sn'] = '0'
+            p['authorization_sn'] = '1234567890'
     return data
+
+_org_get_plugin_list = real.get_plugin_list
 
 def _get_plugin_list(*args, **kwargs):
     data = _org_get_plugin_list(*args, **kwargs)
