@@ -71,7 +71,7 @@ jobs:
           rm -rf ./panel
           unzip -o ./org_packages/panel_install_${{ env.AA_VERSION }}.zip -d .
           rm -rf ./panel/class/*.so
-          cp ./patched/PluginLoader.py ./panel/class/PluginLoader.py
+          cp ./patched/PluginLoader.so ./panel/class/PluginLoader.so
           sed -i "s|'offical_base':[[:space:]]*\[[^]]*\]|'offical_base':      ['${{ secrets.AA_OFFICAL_BASE }}']|g" ./panel/class/public/common.py
           sed -i "s|'api_base':[[:space:]]*\[[^]]*\]|'api_base':          ['${{ secrets.AA_API_BASE }}']|g" ./panel/class/public/common.py
           sed -i "s|'plugin_base':[[:space:]]*\[[^]]*\]|'plugin_base':       ['${{ secrets.AA_PLUGIN_BASE }}']|g" ./panel/class/public/common.py
@@ -93,7 +93,7 @@ jobs:
           rm -rf ./panel
           unzip -o ./org_packages/panel_update_${{ env.AA_VERSION }}.zip -d .
           rm -rf ./panel/class/*.so
-          cp ./patched/PluginLoader.py ./panel/class/PluginLoader.py
+          cp ./patched/PluginLoader.so ./panel/class/PluginLoader.so
           sed -i "s|'offical_base':[[:space:]]*\[[^]]*\]|'offical_base':      ['${{ secrets.AA_OFFICAL_BASE }}']|g" ./panel/class/public/common.py
           sed -i "s|'api_base':[[:space:]]*\[[^]]*\]|'api_base':          ['${{ secrets.AA_API_BASE }}']|g" ./panel/class/public/common.py
           sed -i "s|'plugin_base':[[:space:]]*\[[^]]*\]|'plugin_base':       ['${{ secrets.AA_PLUGIN_BASE }}']|g" ./panel/class/public/common.py
