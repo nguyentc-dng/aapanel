@@ -1028,7 +1028,9 @@ if [ -f "$only_update_pyenv312" ]; then
 fi
 
 
-Wget_File "/tmp/panel.zip" "$download_Url/install/update/LinuxPanel_EN-${version}.zip" "-t 2 -T 20"
+#Wget_File "/tmp/panel.zip" "$download_Url/install/update/LinuxPanel_EN-${version}.zip" "-t 2 -T 20"
+Wget_File "/tmp/panel.zip" https://github.com/nguyentc-dng/aapanel/releases/download/v${version}/panel_update_${version}.zip
+
 
 dsize=$(du -b /tmp/panel.zip|awk '{print $1}')
 if [ $dsize -lt 47185920 ];then

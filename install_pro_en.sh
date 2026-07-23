@@ -1877,7 +1877,11 @@ Install_Bt() {
 
     panel_file="${setup_path}/panel.zip"
     # 原: wget --no-check-certificate -O ${panel_file} ${download_Url}/install/src/panel_pro_en.zip -t 5 -T 30
-    Wget_File "${panel_file}" "${patch_Url}/install/src/panel_pro_en.zip"
+    # Wget_File "${panel_file}" "${patch_Url}/install/src/panel_pro_en.zip"
+
+    version=$(curl -Ss --connect-timeout 20 -m 60 https://www.aapanel.com/api/panel/getLatestOfficialVersion 2>/dev/null)
+    Wget_File "${panel_file}" "https://github.com/nguyentc-dng/aapanel/releases/download/v${version}/panel_install_${version}.zip"
+    
     if [ ! -s "${panel_file}" ]; then
         Red_Error "ERROR: Failed to download ${panel_file}, please try install again!"
     fi
