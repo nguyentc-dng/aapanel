@@ -51,7 +51,7 @@ def decrypt_module_file(file_path: str, key: str, iv: str) -> str:
             if plain_line:
                 decrypted_lines.append(plain_line)
 
-    full_code = "\n".join(decrypted_lines)
+    full_code = "".join(decrypted_lines)
     return full_code
 
 def parse_args():
