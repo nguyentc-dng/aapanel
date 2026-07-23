@@ -64,7 +64,7 @@ jobs:
 
       - name: Create patched directory
         run: |
-          mkdir ./patched_packages/ && ./patched_packages/*
+          mkdir ./patched_packages/ && rm -rf ./patched_packages/*
 
       - name: Patch install packages
         run: |
