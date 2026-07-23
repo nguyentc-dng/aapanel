@@ -7,9 +7,38 @@ permissions:
   contents: write
   
 jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    outputs:
+      build: ${{ steps.check.outputs.build }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set environment variable
+        run: |
+          AA_VERSION=$(curl -Ss --connect-timeout 20 -m 60 https://www.aapanel.com/api/panel/getLatestOfficialVersion 2>/dev/null)
+          echo "AA_VERSION=$AA_VERSION" >> $GITHUB_ENV
+
+      - name: Check release
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "v${{ env.VERSION }}" >/dev/null 2>&1; then
+            echo "Release v${{ env.VERSION }} exists"
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Release v${{ env.VERSION }} not found"
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: Build patched aaPanel packages
-    runs-on: ubuntu-24.04
+    needs: check
+    if: needs.check.outputs.build == 'true'
+    runs-on: ubuntu-latest
     timeout-minutes: 1440
     
     steps:
@@ -48,11 +77,11 @@ jobs:
           sed -i "s/PluginLoader\.so/PluginLoader_real.so/g" ./panel/BT-Panel
           rm -rf ./patched/comMod_dec.py ./patched/comMod.py
           python3 ./aes_decrypt.py input=./panel/mod/project/agent/comMod.py output=./patched/comMod_dec.py key=${{ secrets.AA_MODULE_AES_KEY }} iv=${{ secrets.AA_MODULE_AES_IV }}
-          sed -i 's|https://www\.aapanel\.com/aap_agent|https://aa.maxcdn.top/aap_agent|g' ./patched/comMod_dec.py
-          sed -Ei 's|"api_base_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v1"|"api_base_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
-          sed -Ei 's|"api_simple_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v2"|"api_simple_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
-          sed -Ei 's|"api_sleep_model_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v3"|"api_sleep_model_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
-          sed -Ei 's|# "api_embedding_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/embedding/v1"|"api_embedding_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
+          sed -i 's|https://www\.aapanel\.com/aap_agent|${{ secrets.AA_AAP_AGENT_URL }}|g' ./patched/comMod_dec.py
+          sed -Ei 's|"api_base_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v1"|"api_base_url": "${{ secrets.AA_AI_BASE_URL }}"|g' ./patched/comMod_dec.py
+          sed -Ei 's|"api_simple_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v2"|"api_simple_url": "${{ secrets.AA_AI_BASE_URL }}"|g' ./patched/comMod_dec.py
+          sed -Ei 's|"api_sleep_model_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v3"|"api_sleep_model_url": "${{ secrets.AA_AI_BASE_URL }}"|g' ./patched/comMod_dec.py
+          sed -Ei 's|# "api_embedding_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/embedding/v1"|"api_embedding_url": "${{ secrets.AA_AI_BASE_URL }}"|g' ./patched/comMod_dec.py
           python3 ./aes_encrypt.py input=./patched/comMod_dec.py output=./patched/comMod.py key=${{ secrets.AA_MODULE_AES_KEY }} iv=${{ secrets.AA_MODULE_AES_IV }}
           rm -rf ./panel/mod/project/agent/comMod.py
           cp ./patched/comMod.py ./panel/mod/project/agent/comMod.py
@@ -69,11 +98,11 @@ jobs:
           sed -i "s/PluginLoader\.so/PluginLoader_real.so/g" ./panel/BT-Panel
           rm -rf ./patched/comMod_dec.py ./patched/comMod.py
           python3 ./aes_decrypt.py input=./panel/mod/project/agent/comMod.py output=./patched/comMod_dec.py key=${{ secrets.AA_MODULE_AES_KEY }} iv=${{ secrets.AA_MODULE_AES_IV }}
-          sed -i 's|https://www\.aapanel\.com/aap_agent|https://aa.maxcdn.top/aap_agent|g' ./patched/comMod_dec.py
-          sed -Ei 's|"api_base_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v1"|"api_base_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
-          sed -Ei 's|"api_simple_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v2"|"api_simple_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
-          sed -Ei 's|"api_sleep_model_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v3"|"api_sleep_model_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
-          sed -Ei 's|# "api_embedding_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/embedding/v1"|"api_embedding_url": "https://api-gpt.luce.moe/v3"|' ./patched/comMod_dec.py
+          sed -i 's|https://www\.aapanel\.com/aap_agent|${{ secrets.AA_AAP_AGENT_URL }}|g' ./patched/comMod_dec.py
+          sed -Ei 's|"api_base_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v1"|"api_base_url": "${{ secrets.AA_AI_BASE_URL }}"|g' ./patched/comMod_dec.py
+          sed -Ei 's|"api_simple_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v2"|"api_simple_url": "${{ secrets.AA_AI_BASE_URL }}"|g' ./patched/comMod_dec.py
+          sed -Ei 's|"api_sleep_model_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/v3"|"api_sleep_model_url": "${{ secrets.AA_AI_BASE_URL }}"|g' ./patched/comMod_dec.py
+          sed -Ei 's|# "api_embedding_url":[[:space:]]*f"\{AA_BASE_URL\}/openai/embedding/v1"|"api_embedding_url": "${{ secrets.AA_AI_BASE_URL }}"|g' ./patched/comMod_dec.py
           python3 ./aes_encrypt.py input=./patched/comMod_dec.py output=./patched/comMod.py key=${{ secrets.AA_MODULE_AES_KEY }} iv=${{ secrets.AA_MODULE_AES_IV }}
           rm -rf ./panel/mod/project/agent/comMod.py
           cp ./patched/comMod.py ./panel/mod/project/agent/comMod.py
@@ -83,7 +112,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: "aaPanel Pro ${{ env.AA_VERSION }}"
+          tag_name: "v${{ env.AA_VERSION }}"
           release_name: "aaPanel Pro ${{ env.AA_VERSION }}"
           draft: false
           prerelease: false
