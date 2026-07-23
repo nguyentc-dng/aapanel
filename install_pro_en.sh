@@ -1958,12 +1958,12 @@ Install_Bt() {
     chmod -R +x ${setup_path}/server/panel/script
     chmod -R 700 $pyenv_path/pyenv/bin
     ln -sf /etc/init.d/bt /usr/bin/bt
-    echo "${panelPort}" >${setup_path}/server/panel/data/port.pl
+    echo -n "${panelPort}" >${setup_path}/server/panel/data/port.pl
     # 原: wget --no-check-certificate -O /www/server/panel/data/softList.conf ${download_Url}/install/conf/softList_en.conf -t 5 -T 30
     Wget_File "/www/server/panel/data/softList.conf" "${download_Url}/install/conf/softList_en.conf" "-t 2 -T 20"
 
     echo '{"id": 9999, "uuid": "4310ac7a-8585-4b66-842b-ccd6d6e6cef5", "referral_code": "TCN9999", "referral_id": 0, "username": "aaP_admin", "is_verified_email": 1, "email": "admin@admin.com", "reg_ip": "1.1.1.1", "reg_country": "Vietnam", "last_login_ip": "222.255.167.51", "is_super": 0, "status": 1, "integral": 0, "create_time": 1733902799, "update_time": 1784258536, "email_verified_time": 1733903069, "resource_code": "", "day_date": "2024-12-11", "reg_type": 0, "referral": null, "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczpcL1wvYWFwYW5lbC50Y25ndXllbi5pZC52blwvcHJvXC9hcGlcL3VzZXJcL2xvZ2luIiwiaWF0IjoxNzg0MjU4NTM2LCJuYmYiOjE3ODQyNTg1MzYsImp0aSI6IjAxUGJadEluQlRQcVI5OWsiLCJzdWIiOiI5OTk5IiwicHJ2IjoiMmNiNjUwNzIxZjQ0YWQ3Y2M1ZjE2NjU4NzA0OWQ5MmJmMGU3NmYxNSIsInR5cGUiOiJhY2Nlc3MiLCJpcEFkZHJlc3MiOiIyMjIuMjU1LjE2Ny41MSJ9.w2jfbC8f_UCeCj1LccCwiSSv-pKtWtatFiWE-ujpllU", "uid": 9999, "server_id": "99d31bdb3b88395e38d99cea2652412381aa908b7e1e86a83fc8dc94b934cc99"}' > /www/server/panel/data/userInfo.json
-    
+
     Panel_web_server
 }
 
