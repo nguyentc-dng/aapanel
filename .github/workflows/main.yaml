@@ -70,11 +70,12 @@ jobs:
         run: |
           rm -rf ./panel
           unzip -o ./org_packages/panel_install_${{ env.AA_VERSION }}.zip -d .
+          rm -rf ./panel/class/*.so
           cp ./patched/PluginLoader.py ./panel/class/PluginLoader.py
-          #sed -i "s|'offical_base':[[:space:]]*\[[^]]*\]|'offical_base':      ['${{ secrets.AA_OFFICAL_BASE }}']|g" ./panel/class/public/common.py
+          sed -i "s|'offical_base':[[:space:]]*\[[^]]*\]|'offical_base':      ['${{ secrets.AA_OFFICAL_BASE }}']|g" ./panel/class/public/common.py
           sed -i "s|'api_base':[[:space:]]*\[[^]]*\]|'api_base':          ['${{ secrets.AA_API_BASE }}']|g" ./panel/class/public/common.py
           sed -i "s|'plugin_base':[[:space:]]*\[[^]]*\]|'plugin_base':       ['${{ secrets.AA_PLUGIN_BASE }}']|g" ./panel/class/public/common.py
-          sed -i "s/PluginLoader\.so/PluginLoader_real.so/g" ./panel/BT-Panel
+          sed -i "s/updateInfo = json.loads(updateInfoRaw)/updateInfo = json.loads(updateInfoRaw); updateInfo['pro'] = updateInfo['beta']/g" ./panel/class_v2/ajax_v2.py
           rm -rf ./patched/comMod_dec.py ./patched/comMod.py
           python3 ./aes_decrypt.py input=./panel/mod/project/agent/comMod.py output=./patched/comMod_dec.py key=${{ secrets.AA_MODULE_AES_KEY }} iv=${{ secrets.AA_MODULE_AES_IV }}
           sed -i 's|https://www\.aapanel\.com/aap_agent|${{ secrets.AA_AAP_AGENT_URL }}|g' ./patched/comMod_dec.py
@@ -91,11 +92,12 @@ jobs:
         run: |
           rm -rf ./panel
           unzip -o ./org_packages/panel_update_${{ env.AA_VERSION }}.zip -d .
+          rm -rf ./panel/class/*.so
           cp ./patched/PluginLoader.py ./panel/class/PluginLoader.py
-          #sed -i "s|'offical_base':[[:space:]]*\[[^]]*\]|'offical_base':      ['${{ secrets.AA_OFFICAL_BASE }}']|g" ./panel/class/public/common.py
+          sed -i "s|'offical_base':[[:space:]]*\[[^]]*\]|'offical_base':      ['${{ secrets.AA_OFFICAL_BASE }}']|g" ./panel/class/public/common.py
           sed -i "s|'api_base':[[:space:]]*\[[^]]*\]|'api_base':          ['${{ secrets.AA_API_BASE }}']|g" ./panel/class/public/common.py
           sed -i "s|'plugin_base':[[:space:]]*\[[^]]*\]|'plugin_base':       ['${{ secrets.AA_PLUGIN_BASE }}']|g" ./panel/class/public/common.py
-          sed -i "s/PluginLoader\.so/PluginLoader_real.so/g" ./panel/BT-Panel
+          sed -i "s/updateInfo = json.loads(updateInfoRaw)/updateInfo = json.loads(updateInfoRaw); updateInfo['pro'] = updateInfo['beta']/g" ./panel/class_v2/ajax_v2.py
           rm -rf ./patched/comMod_dec.py ./patched/comMod.py
           python3 ./aes_decrypt.py input=./panel/mod/project/agent/comMod.py output=./patched/comMod_dec.py key=${{ secrets.AA_MODULE_AES_KEY }} iv=${{ secrets.AA_MODULE_AES_IV }}
           sed -i 's|https://www\.aapanel\.com/aap_agent|${{ secrets.AA_AAP_AGENT_URL }}|g' ./patched/comMod_dec.py
