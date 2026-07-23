@@ -131,7 +131,8 @@ def module_run(module_name,def_name,args):
     if not public.path_safe_check(module_file):
         return public.returnMsg(False,'parameter incorrect: module_name and def_name cannot contains special symbols.')
     
-    def_object = public.get_script_object(module_file)
+    #def_object = public.get_script_object(module_file)
+    def_object = __get_class_module(module_file)
     if not def_object: return public.returnMsg(False,'module [%s] not found' % module_name)
 
     # 模块实例化并返回方法对象
